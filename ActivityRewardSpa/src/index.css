@@ -15,5 +15,13 @@ h6 {
 }
 
 body {
-    @apply dark:bg-zinc-900 text-zinc-900 dark:text-white font-rubik;
+    @apply dark:bg-zinc-900 text-zinc-900 dark:text-white;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+@media screen and (display-mode: standalone) {
+    header {
+        height: 60px !important;
+    }
 }

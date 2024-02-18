@@ -1,5 +1,7 @@
+using Api.Dtos;
 using Business.Models;
 using Business.Services;
+using ErrorOr;
 using Infrastructure.EF.Context;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -26,11 +28,17 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<ActionResult> Register(RegisterRequest request)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<Response<LoginResponse>>> Register(RegisterRequest request)
     {
+        Response<LoginResponse> response = new();
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            response.Success = false;
+            response.Message = "Invalid credentials";
+            return Ok(response);
         }
 
         var result = await _userManager.CreateAsync(
@@ -44,7 +52,9 @@ public class AuthController : ControllerBase
 
         if (userInDb == null)
         {
-            return Unauthorized("Invalid credentials");
+            response.Success = false;
+            response.Message = "User not found";
+            return Ok(response);
         }
 
         if (result.Succeeded)
@@ -53,60 +63,81 @@ public class AuthController : ControllerBase
 
             var accessToken = _tokenService.CreateToken(userInDb, _configuration);
             await _contex.SaveChangesAsync();
-
-            return Ok(new LoginResponse
+            
+            response.Success = true;
+            response.Data = new LoginResponse
             {
-                Username = request.Username,
-                Email = request.Email,
+                Username = userInDb.UserName,
+                Email = userInDb.Email,
                 Token = accessToken
-            });
+            };
+
+            return Ok(response);
         }
 
         foreach (var error in result.Errors)
         {
             ModelState.AddModelError(error.Code, error.Description);
         }
+        
+        response.Success = false;
+        response.Message = "Invalid credentials";
 
-        return BadRequest(ModelState);
+        return Ok(response);
     }
 
     [HttpPost("login")]
-    public async Task<ActionResult<LoginResponse>> Authenticate([FromBody] LoginRequest request)
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<Response<LoginResponse>>> Authenticate([FromBody] LoginRequest request)
     {
+        Response<LoginResponse> response = new();
         if (!ModelState.IsValid)
         {
-            return BadRequest(ModelState);
+            response.Success = false;
+            response.Message = "Invalid credentials";
+            return  Ok(response);
         }
 
         var managedUser = await _userManager.FindByEmailAsync(request.Email);
 
         if (managedUser == null)
         {
-            return BadRequest("Invalid credentials");
+            response.Success = false;
+            response.Message = "Invalid credentials";
+            return Ok(response);
         }
 
         var isPasswordValid = await _userManager.CheckPasswordAsync(managedUser, request.Password);
 
         if (!isPasswordValid)
         {
-            return BadRequest("Invalid credentials");
+            response.Success = false;
+            response.Message = "Invalid credentials";
+            return Ok(response);
         }
 
         var userInDb = await _userManager.FindByEmailAsync(request.Email);
 
         if (userInDb == null)
         {
-            return Unauthorized();
+            response.Success = false;
+            response.Message = "Invalid credentials";
+            return Ok(response);
         }
 
         var accessToken = _tokenService.CreateToken(userInDb, _configuration);
         await _contex.SaveChangesAsync();
-
-        return Ok(new LoginResponse
+        
+        response.Success = true;
+        response.Data = new LoginResponse
         {
             Username = userInDb.UserName,
             Email = userInDb.Email,
             Token = accessToken
-        });
+        };
+
+        return Ok(response);
     }
 }

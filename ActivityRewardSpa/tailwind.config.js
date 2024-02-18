@@ -36,6 +36,9 @@ module.exports = {
                 sathoshi: ["Satoshi", "sans-serif"],
                 rubik: ["Rubik", "sans-serif"],
             },
+            screens: {
+                standalone: { raw: "(display-mode: standalone)" },
+            },
         },
     },
     // eslint-disable-next-line no-undef

@@ -8,7 +8,7 @@ import { VariantProps, cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-    "inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 ",
+    "inline-flex items-center justify-center whitespace-nowrap rounded-md md:text-sm  font-medium transition-colors focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 ",
     {
         variants: {
             variant: {
@@ -20,14 +20,15 @@ const buttonVariants = cva(
                     "border border-zinc-200 bg-white shadow-sm hover:bg-zinc-100 hover:text-zinc-900 dark:border-zinc-800 dark:bg-zinc-950 dark:hover:bg-zinc-800 dark:hover:text-zinc-50",
                 secondary:
                     "bg-zinc-100 text-zinc-900 shadow-sm hover:bg-zinc-100/80 dark:bg-zinc-800 dark:text-zinc-50 dark:hover:bg-zinc-800/80",
-                ghost: "hover:bg-zinc-100 hover:text-zinc-900 dark:hover:bg-zinc-800 dark:hover:text-zinc-50",
+                ghost: "md:hover:bg-zinc-100 md:hover:text-zinc-900 md:dark:hover:bg-zinc-800 md:dark:hover:text-zinc-50",
                 link: "text-zinc-900 underline-offset-4 hover:underline dark:text-zinc-50",
             },
             size: {
-                default: "h-9 px-4 py-2",
+                default: "h-11 md:h-9 px-4 py-2",
                 sm: "h-8 rounded-md px-3 text-xs",
                 lg: "h-10 rounded-md px-8",
                 icon: "h-9 w-9",
+                ghost: "",
             },
         },
         defaultVariants: {
@@ -40,6 +41,7 @@ const buttonVariants = cva(
 type ButtonProps2 = Omit<ButtonProps, "children"> & {
     children: React.ReactNode;
     onClick?: () => void;
+    isLoading?: boolean;
 };
 
 interface OpacityButtonProps extends ButtonProps2, VariantProps<typeof buttonVariants> {}
@@ -74,6 +76,8 @@ export const OpacityButton = React.forwardRef(
                     {...(restButtonProps as MotionButtonProps)}
                     ref={ref}
                     animate={controls}
+                    type={props.type || "button"}
+                    disabled={props.isDisabled}
                     style={{
                         WebkitTapHighlightColor: "transparent",
                     }}
@@ -82,6 +86,7 @@ export const OpacityButton = React.forwardRef(
                         props.className
                     )}
                 >
+                    {props.isLoading ? <Spinner /> : null}
                     {props.children}
                 </motion.button>
             </FocusRing>
@@ -90,3 +95,16 @@ export const OpacityButton = React.forwardRef(
 );
 
 OpacityButton.displayName = "AnimatedButton";
+
+function Spinner() {
+    return (
+        <div
+            className="inline-block mr-2 h-5 w-5 animate-spin rounded-full border-[3px] border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]"
+            role="status"
+        >
+            <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">
+                Loading...
+            </span>
+        </div>
+    );
+}

@@ -1,7 +1,6 @@
 import * as z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { Button } from "@/components/ui/button";
 import {
     Form,
     FormControl,
@@ -14,12 +13,15 @@ import {
 import { Input } from "@/components/ui/input";
 import { registerFormSchema } from "./RegisterPage";
 import { Link } from "react-router-dom";
+import { OpacityButton } from "@/components/ui/ButtonNew";
 
 interface RegisterFormProps {
     onSubmit: (values: z.infer<typeof registerFormSchema>) => void;
+    error?: string;
+    isLoading?: boolean;
 }
 
-export default function RegisterForm({ onSubmit }: RegisterFormProps) {
+export default function RegisterForm({ onSubmit, isLoading }: RegisterFormProps) {
     const form = useForm<z.infer<typeof registerFormSchema>>({
         resolver: zodResolver(registerFormSchema),
         defaultValues: {
@@ -30,19 +32,20 @@ export default function RegisterForm({ onSubmit }: RegisterFormProps) {
     });
 
     return (
-        <div className="flex flex-col items-center justify-between h-full m-auto max-w-96">
+        <div className="h-full m-auto max-w-96">
             <Form {...form}>
                 <form
                     onSubmit={form.handleSubmit(onSubmit)}
-                    className="w-full p-4 space-y-6"
+                    className="flex flex-col items-center justify-between w-full h-full space-y-6 md:justify-center"
                 >
+                    <div> </div>
                     <div className="text-center ">
                         <h2 className="text-3xl font-bold">Create an account</h2>
                         <p className="font-light text-zinc-400">
                             Sign up to start your journey
                         </p>
                     </div>
-                    <div className="space-y-2">
+                    <div className="w-full space-y-2">
                         <FormField
                             control={form.control}
                             name="email"
@@ -100,18 +103,25 @@ export default function RegisterForm({ onSubmit }: RegisterFormProps) {
                             )}
                         />
                     </div>
-                    <Button className="w-full" type="submit">
-                        Submit
-                    </Button>
-                    <p className="font-light text-center text-zinc-500">
-                        Already have an account?{" "}
-                        <Link
-                            to="/auth/login"
-                            className="font-normal underline hover:text-zinc-200"
+                    <div className="flex flex-col w-full gap-4 md:flex-col-reverse">
+                        <p className="font-light text-center text-zinc-500">
+                            Already have an account?{" "}
+                            <Link
+                                replace
+                                to="/auth/login"
+                                className="font-normal underline hover:text-zinc-200"
+                            >
+                                Login
+                            </Link>
+                        </p>
+                        <OpacityButton
+                            className="w-full"
+                            type="submit"
+                            isLoading={isLoading}
                         >
-                            Login
-                        </Link>
-                    </p>
+                            Submit
+                        </OpacityButton>
+                    </div>
                 </form>
             </Form>
         </div>
